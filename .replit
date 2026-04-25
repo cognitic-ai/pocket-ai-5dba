@@ -1,0 +1,5 @@
+run = "npm run preview"
+modules = ["nodejs-20"]
+
+[env]
+NODE_OPTIONS = "--max-old-space-size=4096"
