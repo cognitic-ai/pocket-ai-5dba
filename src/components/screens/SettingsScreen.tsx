@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface SettingsScreenProps {
   onThemeChange: (theme: 'light' | 'dark' | 'neon') => void;
@@ -6,9 +6,33 @@ interface SettingsScreenProps {
   onGoBack: () => void;
 }
 
+interface UserCharacter {
+  name: string;
+  avatar: string;
+}
+
+const AVATAR_OPTIONS = [
+  '👩', '👨', '🧑', '👩‍🦰', '👨‍🦰', '🧔', '👩‍🦱', '👨‍🦱',
+  '👩‍🦳', '👨‍🦳', '👩‍🦲', '👨‍🦲', '🧑‍🦱', '👱', '🧑‍🦳'
+];
+
 const SettingsScreen: React.FC<SettingsScreenProps> = ({ onThemeChange, currentTheme, onGoBack }) => {
   const [showMemories, setShowMemories] = useState(false);
   const [memories, setMemories] = useState<any[]>([]);
+  const [showCharacterEdit, setShowCharacterEdit] = useState(false);
+  const [character, setCharacter] = useState<UserCharacter | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editAvatar, setEditAvatar] = useState('');
+
+  useEffect(() => {
+    const savedCharacter = localStorage.getItem('userCharacter');
+    if (savedCharacter) {
+      const parsed = JSON.parse(savedCharacter);
+      setCharacter(parsed);
+      setEditName(parsed.name);
+      setEditAvatar(parsed.avatar);
+    }
+  }, []);
 
   const loadMemories = () => {
     const appData = JSON.parse(localStorage.getItem('appData') || '{}');
@@ -50,6 +74,26 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onThemeChange, currentT
     input.click();
   };
 
+  const saveCharacterEdits = () => {
+    if (!editName.trim()) {
+      alert('角色名称不能为空');
+      return;
+    }
+    const updated = { name: editName.trim(), avatar: editAvatar };
+    localStorage.setItem('userCharacter', JSON.stringify(updated));
+    setCharacter(updated);
+    setShowCharacterEdit(false);
+    alert('角色信息已更新');
+  };
+
+  const resetCharacter = () => {
+    if (confirm('确定要重新创建角色吗？')) {
+      localStorage.removeItem('userCharacter');
+      alert('请刷新页面重新创建角色');
+      window.location.reload();
+    }
+  };
+
   const clearData = () => {
     if (confirm('确定要清空所有数据吗？此操作无法撤销！')) {
       localStorage.removeItem('appData');
@@ -76,6 +120,87 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onThemeChange, currentT
       </div>
 
       <div className="settings-content">
+        {/* Character Info Section */}
+        <div className="settings-section">
+          <h3>👤 我的角色</h3>
+          {character && !showCharacterEdit && (
+            <div style={{ padding: '10px', backgroundColor: '#f5f5f5', borderRadius: '8px', marginBottom: '10px' }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '48px', marginBottom: '10px' }}>{character.avatar}</div>
+                <p style={{ margin: '5px 0', fontWeight: 'bold' }}>{character.name}</p>
+                <button
+                  onClick={() => setShowCharacterEdit(true)}
+                  className="setting-btn"
+                  style={{ marginTop: '10px', marginRight: '10px' }}
+                >
+                  ✏️ 编辑
+                </button>
+                <button
+                  onClick={resetCharacter}
+                  className="setting-btn danger"
+                  style={{ marginTop: '10px' }}
+                >
+                  🔄 重新创建
+                </button>
+              </div>
+            </div>
+          )}
+          {showCharacterEdit && (
+            <div style={{ padding: '10px', backgroundColor: '#f9f9f9', borderRadius: '8px', marginBottom: '10px' }}>
+              <p style={{ fontSize: '12px', marginBottom: '10px' }}>选择头像：</p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '5px', marginBottom: '15px' }}>
+                {AVATAR_OPTIONS.map((avatar) => (
+                  <button
+                    key={avatar}
+                    onClick={() => setEditAvatar(avatar)}
+                    style={{
+                      fontSize: '32px',
+                      padding: '8px',
+                      border: editAvatar === avatar ? '2px solid #3b82f6' : '1px solid #ccc',
+                      borderRadius: '6px',
+                      backgroundColor: editAvatar === avatar ? '#dbeafe' : '#fff',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {avatar}
+                  </button>
+                ))}
+              </div>
+              <input
+                type="text"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                placeholder="输入角色名称"
+                maxLength={20}
+                style={{
+                  width: '100%',
+                  padding: '8px',
+                  marginBottom: '10px',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  boxSizing: 'border-box'
+                }}
+              />
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  onClick={saveCharacterEdits}
+                  className="setting-btn"
+                  style={{ flex: 1, backgroundColor: '#3b82f6', color: 'white' }}
+                >
+                  💾 保存
+                </button>
+                <button
+                  onClick={() => setShowCharacterEdit(false)}
+                  className="setting-btn"
+                  style={{ flex: 1 }}
+                >
+                  取消
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
         <div className="settings-section">
           <h3>🎨 主题</h3>
           <div className="theme-options">

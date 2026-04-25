@@ -10,6 +10,7 @@ import DiaryScreen from './screens/DiaryScreen';
 import PeriodScreen from './screens/PeriodScreen';
 import CheckPhoneScreen from './screens/CheckPhoneScreen';
 import SettingsScreen from './screens/SettingsScreen';
+import CharacterCreationScreen from './screens/CharacterCreationScreen';
 import Dock from './Dock';
 import '../styles/smartphone.css';
 
@@ -21,14 +22,28 @@ interface Contact {
   avatar: string;
 }
 
+interface UserCharacter {
+  name: string;
+  avatar: string;
+}
+
 const SmartphoneSimulator: React.FC = () => {
   const [currentScreen, setCurrentScreen] = useState<ScreenType>('home');
   const [screenHistory, setScreenHistory] = useState<ScreenType[]>(['home']);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const [theme, setTheme] = useState<'light' | 'dark' | 'neon'>('light');
+  const [character, setCharacter] = useState<UserCharacter | null>(null);
+  const [isFirstTime, setIsFirstTime] = useState(true);
 
   // Initialize localStorage data
   useEffect(() => {
+    // Check if user has created a character
+    const savedCharacter = localStorage.getItem('userCharacter');
+    if (savedCharacter) {
+      setCharacter(JSON.parse(savedCharacter));
+      setIsFirstTime(false);
+    }
+
     if (!localStorage.getItem('appData')) {
       const initialData = {
         contacts: [
@@ -80,6 +95,25 @@ const SmartphoneSimulator: React.FC = () => {
     localStorage.setItem('theme', newTheme);
     document.documentElement.setAttribute('data-theme', newTheme);
   };
+
+  const handleCharacterCreation = (newCharacter: UserCharacter) => {
+    setCharacter(newCharacter);
+    setIsFirstTime(false);
+    localStorage.setItem('userCharacter', JSON.stringify(newCharacter));
+  };
+
+  // Show character creation screen on first time
+  if (isFirstTime && !character) {
+    return (
+      <div className="smartphone-simulator">
+        <div className="phone-body">
+          <div className="phone-screen">
+            <CharacterCreationScreen onComplete={handleCharacterCreation} />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const renderScreen = () => {
     switch (currentScreen) {
