@@ -32,6 +32,19 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ contact, onNavigate, onGoBack }
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [deliveryTimer, setDeliveryTimer] = useState<NodeJS.Timeout | null>(null);
 
+  useEffect(() => {
+    if (!contact) return;
+    const appData = JSON.parse(localStorage.getItem('appData') || '{}');
+    setIsBlocked(appData.blockedContacts?.includes(contact.id) || false);
+    const chatKey = `chat_${contact.id}`;
+    const storedMessages = JSON.parse(localStorage.getItem(chatKey) || '[]');
+    setMessages(storedMessages);
+  }, [contact]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
   if (!contact) {
     return (
       <div className="chat-screen">
@@ -55,20 +68,6 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ contact, onNavigate, onGoBack }
       </div>
     );
   }
-
-  useEffect(() => {
-    const appData = JSON.parse(localStorage.getItem('appData') || '{}');
-    setIsBlocked(contact ? appData.blockedContacts?.includes(contact.id) || false : false);
-    if (contact) {
-      const chatKey = `chat_${contact.id}`;
-      const storedMessages = JSON.parse(localStorage.getItem(chatKey) || '[]');
-      setMessages(storedMessages);
-    }
-  }, [contact]);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
 
   const generateAIResponse = (userMessage: string) => {
     const responses = [
