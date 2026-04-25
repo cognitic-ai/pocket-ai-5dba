@@ -9,6 +9,8 @@ interface SettingsScreenProps {
 interface UserCharacter {
   name: string;
   avatar: string;
+  bio: string;
+  isCustomImage: boolean;
 }
 
 const AVATAR_OPTIONS = [
@@ -22,7 +24,10 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onThemeChange, currentT
   const [showCharacterEdit, setShowCharacterEdit] = useState(false);
   const [character, setCharacter] = useState<UserCharacter | null>(null);
   const [editName, setEditName] = useState('');
+  const [editBio, setEditBio] = useState('');
   const [editAvatar, setEditAvatar] = useState('');
+  const [editCustomImage, setEditCustomImage] = useState<string | null>(null);
+  const [useEditCustomImage, setUseEditCustomImage] = useState(false);
 
   useEffect(() => {
     const savedCharacter = localStorage.getItem('userCharacter');
@@ -30,7 +35,12 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onThemeChange, currentT
       const parsed = JSON.parse(savedCharacter);
       setCharacter(parsed);
       setEditName(parsed.name);
+      setEditBio(parsed.bio || '');
       setEditAvatar(parsed.avatar);
+      if (parsed.isCustomImage) {
+        setEditCustomImage(parsed.avatar);
+        setUseEditCustomImage(true);
+      }
     }
   }, []);
 
@@ -79,7 +89,13 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onThemeChange, currentT
       alert('角色名称不能为空');
       return;
     }
-    const updated = { name: editName.trim(), avatar: editAvatar };
+    const avatar = useEditCustomImage ? editCustomImage! : editAvatar;
+    const updated = { 
+      name: editName.trim(), 
+      avatar,
+      bio: editBio.trim(),
+      isCustomImage: useEditCustomImage
+    };
     localStorage.setItem('userCharacter', JSON.stringify(updated));
     setCharacter(updated);
     setShowCharacterEdit(false);
@@ -111,6 +127,39 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onThemeChange, currentT
     alert('过时记忆已清理');
   };
 
+  const handleCustomImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      setEditCustomImage(result);
+      setUseEditCustomImage(true);
+      setEditAvatar(''); // Clear selected avatar if custom image is used
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleEditImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert('图片大小不能超过 5MB');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setEditCustomImage(event.target?.result as string);
+        setUseEditCustomImage(true);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeCustomImage = () => {
+    setEditCustomImage(null);
+    setUseEditCustomImage(false);
+  };
   return (
     <div className="settings-screen">
       <div className="screen-header">
@@ -126,8 +175,15 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onThemeChange, currentT
           {character && !showCharacterEdit && (
             <div style={{ padding: '10px', backgroundColor: '#f5f5f5', borderRadius: '8px', marginBottom: '10px' }}>
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '48px', marginBottom: '10px' }}>{character.avatar}</div>
+                <div style={{ fontSize: '48px', marginBottom: '10px' }}>
+                  {character.isCustomImage && character.avatar ? (
+                    <img src={character.avatar} alt="Custom Avatar" style={{ width: 64, height: 64, borderRadius: '50%' }} />
+                  ) : (
+                    character.avatar
+                  )}
+                </div>
                 <p style={{ margin: '5px 0', fontWeight: 'bold' }}>{character.name}</p>
+                {character.bio && <p style={{ margin: '5px 0', fontStyle: 'italic', color: '#666' }}>{character.bio}</p>}
                 <button
                   onClick={() => setShowCharacterEdit(true)}
                   className="setting-btn"
@@ -152,19 +208,40 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onThemeChange, currentT
                 {AVATAR_OPTIONS.map((avatar) => (
                   <button
                     key={avatar}
-                    onClick={() => setEditAvatar(avatar)}
+                    onClick={() => {
+                      setEditAvatar(avatar);
+                      setUseEditCustomImage(false);
+                      setEditCustomImage(null);
+                    }}
                     style={{
                       fontSize: '32px',
                       padding: '8px',
-                      border: editAvatar === avatar ? '2px solid #3b82f6' : '1px solid #ccc',
+                      border: !useEditCustomImage && editAvatar === avatar ? '2px solid #3b82f6' : '1px solid #ccc',
                       borderRadius: '6px',
-                      backgroundColor: editAvatar === avatar ? '#dbeafe' : '#fff',
+                      backgroundColor: !useEditCustomImage && editAvatar === avatar ? '#dbeafe' : '#fff',
                       cursor: 'pointer'
                     }}
                   >
                     {avatar}
                   </button>
                 ))}
+              </div>
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', fontSize: '12px', marginBottom: '5px' }}>上传自定义头像：</label>
+                {editCustomImage ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                    <img src={editCustomImage} alt="Custom Avatar" style={{ width: 64, height: 64, borderRadius: '50%' }} />
+                    <button
+                      onClick={removeCustomImage}
+                      className="setting-btn danger"
+                      style={{ padding: '6px 12px' }}
+                    >
+                      删除自定义头像
+                    </button>
+                  </div>
+                ) : (
+                  <input type="file" accept="image/*" onChange={handleEditImageUpload} />
+                )}
               </div>
               <input
                 type="text"
@@ -179,6 +256,22 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onThemeChange, currentT
                   border: '1px solid #ccc',
                   borderRadius: '4px',
                   boxSizing: 'border-box'
+                }}
+              />
+              <textarea
+                value={editBio}
+                onChange={(e) => setEditBio(e.target.value)}
+                placeholder="输入角色简介 (可选)"
+                maxLength={200}
+                rows={3}
+                style={{
+                  width: '100%',
+                  padding: '8px',
+                  marginBottom: '10px',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  boxSizing: 'border-box',
+                  resize: 'vertical'
                 }}
               />
               <div style={{ display: 'flex', gap: '10px' }}>

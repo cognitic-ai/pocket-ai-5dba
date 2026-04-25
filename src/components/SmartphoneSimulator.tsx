@@ -25,6 +25,8 @@ interface Contact {
 interface UserCharacter {
   name: string;
   avatar: string;
+  bio: string;
+  isCustomImage: boolean;
 }
 
 const SmartphoneSimulator: React.FC = () => {
