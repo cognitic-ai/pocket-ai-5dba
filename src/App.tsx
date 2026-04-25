@@ -3,8 +3,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import React from 'react';
 import './App.css';
-import './styles/website.css';
-import WebsiteLayout from './components/WebsiteLayout';
+import './styles/smartphone.css';
+import SmartphoneSimulator from './components/SmartphoneSimulator';
 
 const queryClient = new QueryClient();
 
@@ -12,7 +12,9 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <WebsiteLayout />
+        <div className="app-container">
+          <SmartphoneSimulator />
+        </div>
         <Toaster />
       </TooltipProvider>
     </QueryClientProvider>
