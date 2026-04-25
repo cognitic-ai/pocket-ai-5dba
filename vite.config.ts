@@ -5,6 +5,7 @@ import { componentTagger } from "steercode-tagger";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  base: '/pocket-ai-5dba/',
   server: {
     host: "0.0.0.0",
     port: 3000,
