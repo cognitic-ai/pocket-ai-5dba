@@ -13,7 +13,7 @@ import SettingsScreen from './screens/SettingsScreen';
 import Dock from './Dock';
 import '../styles/smartphone.css';
 
-type ScreenType = 'home' | 'chat' | 'moments' | 'forum' | 'shopping' | 'delivery' | 'diary' | 'period' | 'check-phone' | 'reverse-check' | 'settings' | 'friends';
+type ScreenType = 'home' | 'chat' | 'moments' | 'forum' | 'shopping' | 'delivery' | 'diary' | 'period' | 'check-phone' | 'settings' | 'friends';
 
 interface Contact {
   id: string;
@@ -32,9 +32,9 @@ const SmartphoneSimulator: React.FC = () => {
     if (!localStorage.getItem('appData')) {
       const initialData = {
         contacts: [
-          { id: '1', name: 'char', avatar: '👩' },
+          { id: '1', name: '小红', avatar: '👩' },
           { id: '2', name: '小美', avatar: '🧑‍🦰' },
-          { id: '3', name: '阿龙', avatar: '🧔' },
+          { id: '3', name: '小龙', avatar: '🧔' },
         ],
         chatHistory: {},
         moments: [],

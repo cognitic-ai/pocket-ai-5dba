@@ -58,10 +58,12 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ contact, onNavigate, onGoBack }
 
   useEffect(() => {
     const appData = JSON.parse(localStorage.getItem('appData') || '{}');
-    setIsBlocked(appData.blockedContacts?.includes(contact.id) || false);
-    const chatKey = `chat_${contact.id}`;
-    const storedMessages = JSON.parse(localStorage.getItem(chatKey) || '[]');
-    setMessages(storedMessages);
+    setIsBlocked(contact ? appData.blockedContacts?.includes(contact.id) || false : false);
+    if (contact) {
+      const chatKey = `chat_${contact.id}`;
+      const storedMessages = JSON.parse(localStorage.getItem(chatKey) || '[]');
+      setMessages(storedMessages);
+    }
   }, [contact]);
 
   useEffect(() => {
@@ -107,10 +109,8 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ contact, onNavigate, onGoBack }
     if (contact.name === 'char' && onlineMode) {
       setIsTyping(true);
       const aiResponse = generateAIResponse(content);
-      
       // Simulate typing delay based on message length
       const typingDelay = aiResponse.length * (Math.random() * 40 + 40);
-      
       setTimeout(() => {
         const responseMessage: Message = {
           id: (Date.now() + 1).toString(),
@@ -119,7 +119,6 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ contact, onNavigate, onGoBack }
           type: 'text',
           timestamp: Date.now(),
         };
-        
         const finalMessages = [...updatedMessages, responseMessage];
         setMessages(finalMessages);
         localStorage.setItem(chatKey, JSON.stringify(finalMessages));
@@ -135,7 +134,6 @@ const ChatScreen: React.FC<ChatScreenProps> = ({ contact, onNavigate, onGoBack }
     const appData = JSON.parse(localStorage.getItem('appData') || '{}');
     const memories = appData.memories || [];
     const messageCount = messages.length;
-    
     if (messageCount > 0 && messageCount % 20 === 0) {
       const memory = {
         id: Date.now(),
