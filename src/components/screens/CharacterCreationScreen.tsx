@@ -151,11 +151,11 @@ const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({ onCom
             placeholder="添加你的角色简介（可选）"
             value={bio}
             onChange={(e) => setBio(e.target.value)}
-            maxLength={100}
+            maxLength={10000}
             className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm resize-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
-            rows={3}
+            rows={6}
           />
-          <p className="text-slate-500 dark:text-slate-400 text-xs mt-1">{bio.length}/100</p>
+          <p className="text-slate-500 dark:text-slate-400 text-xs mt-1">{bio.length}/10000</p>
         </div>
 
         {/* Preview */}
