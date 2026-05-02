@@ -11,6 +11,7 @@ interface UserCharacter {
   avatar: string;
   bio: string;
   isCustomImage: boolean;
+  aiSystemPrompt?: string;
 }
 
 const AVATAR_OPTIONS = [
@@ -22,12 +23,14 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onThemeChange, currentT
   const [showMemories, setShowMemories] = useState(false);
   const [memories, setMemories] = useState<any[]>([]);
   const [showCharacterEdit, setShowCharacterEdit] = useState(false);
+  const [showAISettings, setShowAISettings] = useState(false);
   const [character, setCharacter] = useState<UserCharacter | null>(null);
   const [editName, setEditName] = useState('');
   const [editBio, setEditBio] = useState('');
   const [editAvatar, setEditAvatar] = useState('');
   const [editCustomImage, setEditCustomImage] = useState<string | null>(null);
   const [useEditCustomImage, setUseEditCustomImage] = useState(false);
+  const [editAIPrompt, setEditAIPrompt] = useState('');
 
   useEffect(() => {
     const savedCharacter = localStorage.getItem('userCharacter');
@@ -36,6 +39,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onThemeChange, currentT
       setCharacter(parsed);
       setEditName(parsed.name);
       setEditBio(parsed.bio || '');
+      setEditAIPrompt(parsed.aiSystemPrompt || '');
       setEditAvatar(parsed.avatar);
       if (parsed.isCustomImage) {
         setEditCustomImage(parsed.avatar);
@@ -94,12 +98,25 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onThemeChange, currentT
       name: editName.trim(), 
       avatar,
       bio: editBio.trim(),
-      isCustomImage: useEditCustomImage
+      isCustomImage: useEditCustomImage,
+      aiSystemPrompt: editAIPrompt.trim()
     };
     localStorage.setItem('userCharacter', JSON.stringify(updated));
     setCharacter(updated);
     setShowCharacterEdit(false);
     alert('角色信息已更新');
+  };
+
+  const saveAISettings = () => {
+    if (!character) return;
+    const updated = {
+      ...character,
+      aiSystemPrompt: editAIPrompt.trim()
+    };
+    localStorage.setItem('userCharacter', JSON.stringify(updated));
+    setCharacter(updated);
+    setShowAISettings(false);
+    alert('AI 自我设定已保存');
   };
 
   const resetCharacter = () => {
@@ -284,6 +301,89 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ onThemeChange, currentT
                 </button>
                 <button
                   onClick={() => setShowCharacterEdit(false)}
+                  className="setting-btn"
+                  style={{ flex: 1 }}
+                >
+                  取消
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* AI Self-Definition Section */}
+        <div className="settings-section">
+          <h3>🤖 AI 自我设定</h3>
+          {!showAISettings && (
+            <div style={{ padding: '10px', backgroundColor: '#f5f5f5', borderRadius: '8px', marginBottom: '10px' }}>
+              {character?.aiSystemPrompt ? (
+                <div>
+                  <p style={{ color: '#666', fontSize: '12px', marginBottom: '10px', maxHeight: '100px', overflowY: 'auto' }}>
+                    {character.aiSystemPrompt}
+                  </p>
+                  <button
+                    onClick={() => {
+                      setEditAIPrompt(character.aiSystemPrompt || '');
+                      setShowAISettings(true);
+                    }}
+                    className="setting-btn"
+                    style={{ marginTop: '10px' }}
+                  >
+                    ✏️ 编辑设定
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <p style={{ color: '#999', fontSize: '12px', marginBottom: '10px' }}>还没有设定AI的性格和行为</p>
+                  <button
+                    onClick={() => {
+                      setEditAIPrompt('');
+                      setShowAISettings(true);
+                    }}
+                    className="setting-btn"
+                    style={{ backgroundColor: '#3b82f6', color: 'white' }}
+                  >
+                    ➕ 添加自我设定
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+          {showAISettings && (
+            <div style={{ padding: '10px', backgroundColor: '#f9f9f9', borderRadius: '8px', marginBottom: '10px' }}>
+              <p style={{ fontSize: '12px', marginBottom: '10px', color: '#666' }}>
+                在这里定义 AI 的性格、背景、行为方式等。AI 会根据这个设定与你互动。
+              </p>
+              <textarea
+                value={editAIPrompt}
+                onChange={(e) => setEditAIPrompt(e.target.value)}
+                placeholder="例如：我是一个友好的AI助手，喜欢用表情符号，很关心用户的感受，会给予积极的鼓励..."
+                maxLength={50000}
+                rows={8}
+                style={{
+                  width: '100%',
+                  padding: '8px',
+                  marginBottom: '10px',
+                  border: '1px solid #ccc',
+                  borderRadius: '4px',
+                  boxSizing: 'border-box',
+                  resize: 'vertical',
+                  fontFamily: 'inherit'
+                }}
+              />
+              <p style={{ fontSize: '10px', color: '#999', marginBottom: '10px' }}>
+                {editAIPrompt.length}/50000
+              </p>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  onClick={saveAISettings}
+                  className="setting-btn"
+                  style={{ flex: 1, backgroundColor: '#3b82f6', color: 'white' }}
+                >
+                  💾 保存
+                </button>
+                <button
+                  onClick={() => setShowAISettings(false)}
                   className="setting-btn"
                   style={{ flex: 1 }}
                 >

@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 
 interface CharacterCreationScreenProps {
-  onComplete: (character: { name: string; avatar: string; bio: string; isCustomImage: boolean }) => void;
+  onComplete: (character: { name: string; avatar: string; bio: string; isCustomImage: boolean; aiSystemPrompt?: string }) => void;
 }
 
 const AVATAR_OPTIONS = [
@@ -15,6 +15,7 @@ const AVATAR_OPTIONS = [
 const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({ onComplete }) => {
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
+  const [aiSystemPrompt, setAiSystemPrompt] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState(AVATAR_OPTIONS[0]);
   const [customImage, setCustomImage] = useState<string | null>(null);
   const [useCustomImage, setUseCustomImage] = useState(false);
@@ -52,7 +53,8 @@ const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({ onCom
       name: name.trim(), 
       avatar,
       bio: bio.trim(),
-      isCustomImage: useCustomImage
+      isCustomImage: useCustomImage,
+      aiSystemPrompt: aiSystemPrompt.trim()
     });
   };
 
@@ -156,6 +158,20 @@ const CharacterCreationScreen: React.FC<CharacterCreationScreenProps> = ({ onCom
             rows={6}
           />
           <p className="text-slate-500 dark:text-slate-400 text-xs mt-1">{bio.length}/10000</p>
+        </div>
+
+        {/* AI Self-Definition */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium mb-2 text-slate-900 dark:text-white">🤖 AI 自我设定</label>
+          <textarea
+            placeholder="定义 AI 的性格、背景、行为方式等。例如：我是一个温暖友好的助手，喜欢用表情符号，很关心用户的想法..."
+            value={aiSystemPrompt}
+            onChange={(e) => setAiSystemPrompt(e.target.value)}
+            maxLength={50000}
+            className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm resize-none bg-white dark:bg-slate-700 text-slate-900 dark:text-white"
+            rows={4}
+          />
+          <p className="text-slate-500 dark:text-slate-400 text-xs mt-1">{aiSystemPrompt.length}/50000</p>
         </div>
 
         {/* Preview */}
